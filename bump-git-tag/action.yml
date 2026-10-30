@@ -1,0 +1,60 @@
+name: Bump Git Tag
+description: Bump patch version from git tags and open a pull request.
+branding:
+  icon: tag
+  color: green
+
+inputs:
+  base-branch:
+    description: Base branch for the tag-ahead check and pull request
+    default: main
+  labels:
+    description: Comma-separated pull request labels
+    default: ci, maintenance
+  token:
+    description: Token for creating the pull request
+    default: ${{ github.token }}
+  move-major-tag:
+    description: Move major tag (e.g., v1) to the new patch version
+    default: "false"
+
+outputs:
+  version:
+    description: New git tag version after the patch bump (e.g., v1.2.4)
+    value: ${{ steps.bump.outputs.version }}
+  pull-request-url:
+    description: URL of the created pull request (empty if none)
+    value: ${{ steps.pr.outputs.pull-request-url }}
+
+runs:
+  using: composite
+  steps:
+    - name: Ensure base branch has commits after latest tag
+      shell: bash
+      env:
+        INPUT_BASE_BRANCH: ${{ inputs.base-branch }}
+      run: bash "${{ github.action_path }}/../lib/ensure-commits-after-tag.sh"
+
+    - name: Bump git tag patch version
+      id: bump
+      shell: bash
+      env:
+        GITHUB_WORKSPACE: ${{ github.workspace }}
+        INPUT_MOVE_MAJOR_TAG: ${{ inputs.move-major-tag }}
+      run: node "${{ github.action_path }}/../lib/bump-git-tag.mjs"
+
+    - name: Create Pull Request
+      id: pr
+      uses: peter-evans/create-pull-request@5f6978faf089d4d20b00c7766989d076bb2fc7f1 # v8
+      with:
+        token: ${{ inputs.token }}
+        base: ${{ inputs.base-branch }}
+        commit-message: "chore: bump version to ${{ steps.bump.outputs.version }}"
+        branch: "chore/bump-git-tag-${{ github.run_id }}"
+        delete-branch: true
+        title: "chore: bump version to ${{ steps.bump.outputs.version }}"
+        labels: ${{ inputs.labels }}
+        body: |
+          This PR bumps the **patch** version from git tags.
+
+          Triggered from [bump-git-tag](https://github.com/${{ github.repository }}/actions/workflows/bump-git-tag.yml).

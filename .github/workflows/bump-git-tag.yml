@@ -1,0 +1,43 @@
+name: Bump Git Tag
+
+on:
+  workflow_call:
+    inputs:
+      base-branch:
+        description: Base branch for the tag-ahead check and pull request
+        type: string
+        default: main
+      labels:
+        description: Comma-separated pull request labels
+        type: string
+        default: ci, maintenance
+      move-major-tag:
+        description: Move major tag (e.g., v1) to the new patch version
+        type: string
+        default: "false"
+    secrets:
+      token:
+        description: Token for creating the pull request
+        required: false
+
+permissions:
+  contents: write
+  pull-requests: write
+
+jobs:
+  bump:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          fetch-depth: 0
+          token: ${{ secrets.token || github.token }}
+
+      - name: Bump git tag patch version
+        uses: ./bump-git-tag
+        with:
+          base-branch: ${{ inputs.base-branch }}
+          labels: ${{ inputs.labels }}
+          token: ${{ secrets.token || github.token }}
+          move-major-tag: ${{ inputs.move-major-tag }}

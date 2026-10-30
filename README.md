@@ -10,6 +10,7 @@ Registry publish is split into two Actions:
 Version bump (opens a PR):
 
 - `dytsou/release/bump-patch-version` → bump `package.json` patch + PR
+- `dytsou/release/bump-git-tag` → bump git tag (v*.*.*) patch + PR
 
 [![GitHub release](https://img.shields.io/github/v/release/dytsou/release)](https://github.com/dytsou/release/releases)
 [![CI](https://github.com/dytsou/release/actions/workflows/ci.yml/badge.svg)](https://github.com/dytsou/release/actions/workflows/ci.yml)
@@ -142,6 +143,34 @@ jobs:
       - uses: dytsou/release/bump-patch-version@v1
 ```
 
+### Bump git tag patch version (opens a PR)
+
+```yaml
+# .github/workflows/bump-git-tag.yml
+name: Bump git tag
+
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: write
+  pull-requests: write
+
+jobs:
+  bump:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          fetch-depth: 0
+
+      - uses: dytsou/release/bump-git-tag@v1
+        with:
+          base-branch: main
+          labels: ci, maintenance
+          move-major-tag: "true"
+```
+
 ### Combined root action
 
 ```yaml
@@ -162,6 +191,7 @@ Pin `@v1` for floating updates, or pin `@v1.2.0` / a commit SHA in production.
 | Action | Purpose |
 | ------ | ------- |
 | `dytsou/release/bump-patch-version@v1` | Bump `package.json` patch version and open a PR |
+| `dytsou/release/bump-git-tag@v1` | Bump git tag (v*.*.*) patch version and open a PR |
 | `dytsou/release/npm-publish@v1` | Publish to **npmjs** (skip if version exists) |
 | `dytsou/release/github-packages@v1` | Publish to **GitHub Packages** (skip if version exists) |
 | `dytsou/release/github@v1` | GitHub Release + optional major tag; optional `from-package-json` |

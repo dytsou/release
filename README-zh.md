@@ -10,6 +10,7 @@ Registry publish 拆成兩個 Action：
 版本 bump（開 PR）：
 
 - `dytsou/release/bump-patch-version` → bump `package.json` patch + PR
+- `dytsou/release/bump-git-tag` → bump git tag (v*.*.*) patch + PR
 
 [![GitHub release](https://img.shields.io/github/v/release/dytsou/release)](https://github.com/dytsou/release/releases)
 [![CI](https://github.com/dytsou/release/actions/workflows/ci.yml/badge.svg)](https://github.com/dytsou/release/actions/workflows/ci.yml)
@@ -142,6 +143,34 @@ jobs:
       - uses: dytsou/release/bump-patch-version@v1
 ```
 
+### Bump git tag patch 版本（開 PR）
+
+```yaml
+# .github/workflows/bump-git-tag.yml
+name: Bump git tag
+
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: write
+  pull-requests: write
+
+jobs:
+  bump:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          fetch-depth: 0
+
+      - uses: dytsou/release/bump-git-tag@v1
+        with:
+          base-branch: main
+          labels: ci, maintenance
+          move-major-tag: "true"
+```
+
 ### 合併 root action
 
 ```yaml
@@ -162,6 +191,7 @@ Major tag（`@v1`）會跟著同 major 浮動；固定版本請用 `@v1.2.0` 或
 | Action | 用途 |
 | ------ | ---- |
 | `dytsou/release/bump-patch-version@v1` | Bump `package.json` patch 並開 PR |
+| `dytsou/release/bump-git-tag@v1` | Bump git tag (v*.*.*) patch 並開 PR |
 | `dytsou/release/npm-publish@v1` | Publish 到 **npmjs**（版本已存在則跳過） |
 | `dytsou/release/github-packages@v1` | Publish 到 **GitHub Packages**（版本已存在則跳過） |
 | `dytsou/release/github@v1` | GitHub Release + 可選 major tag；可選 `from-package-json` |
@@ -175,6 +205,13 @@ Major tag（`@v1`）會跟著同 major 浮動；固定版本請用 `@v1.2.0` 或
 1. 若已有 tag，且 base branch 沒有比最新 tag 更新的 commit → 失敗。
 2. Bump `package.json` 的 patch（不跑 npm lifecycle scripts）。
 3. 開一張 PR。
+
+### `bump-git-tag`
+
+1. 若已有 tag，且 base branch 沒有比最新 tag 更新的 commit → 失敗。
+2. 從最新 `v*.*.*` tag 找出版本，bump patch（例如 `v1.2.3` → `v1.2.4`）。
+3. 建立新 tag，若 `move-major-tag` 為 `"true"`，會同時移動 major tag（例如 `v1` → `v1.2.4`）。
+4. 開一張 PR。
 
 ### `npm-publish` / `github-packages`
 
@@ -216,6 +253,8 @@ Body 佔位符：`__TAG__`、`__MAJOR__`。
 `github-packages` 使用 `token`（預設 `github.token`）。
 
 `bump-patch-version` 輸入：`package-json-path`、`base-branch`、`labels`、`token`。
+
+`bump-git-tag` 輸入：`base-branch`、`labels`、`token`、`move-major-tag`（預設 `"false"`）。
 
 ## Caller 契約
 
