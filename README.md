@@ -217,8 +217,20 @@ See each `action.yml`. Registry Actions share:
 | `working-directory` | `.` | Package root |
 | `pnpm-version` | _(empty)_ | pnpm for `pnpm/action-setup`; empty uses `packageManager`, else `10` |
 
-`npm-publish` also takes `npm-token`, `npm-access`.  
+`npm-publish` also takes `npm-token` (optional), `npm-access`.  
 `github-packages` takes `token` (default `github.token`).
+
+**npm Trusted Publishing (no npm token):** leave `npm-token` empty and grant `id-token: write` to the job. The action then publishes through GitHub OIDC.
+
+```yaml
+permissions:
+  contents: read
+  id-token: write
+steps:
+  - uses: dytsou/release/npm-publish@v1
+    with:
+      dist-tag: auto
+```
 
 `bump-patch-version` inputs: `package-json-path`, `base-branch`, `labels`, `token`.
 
@@ -246,7 +258,8 @@ node --test lib/*.test.mjs
 | What you see | Likely cause |
 | ------------ | ------------ |
 | Version skipped | Already on that registry (`skip-if-exists`) |
-| `npm-token is required` / `token is required` | Missing secret for that Action |
+| `token is required` | Missing token for GitHub Packages |
+| `npm-token is empty and no GitHub OIDC token` | Add `permissions: id-token: write` to the job, or set `npm-token` |
 | Publish failed after install | Registry auth / package `name` scope mismatch |
 | `Version mismatch!` | Tag does not match `package.json` (`from-package-json`) |
 | `Invalid npm package name` / `Invalid semver` | `package.json` `name`/`version` failed allowlist |

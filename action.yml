@@ -50,7 +50,7 @@ inputs:
     required: false
     default: "false"
   npm-token:
-    description: npmjs auth token (required when npm-publish=true)
+    description: "npmjs auth token. Leave empty to publish with trusted publishing; the calling job then needs permissions: id-token: write"
     required: false
     default: ""
   npm-access:

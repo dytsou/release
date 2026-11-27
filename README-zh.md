@@ -217,8 +217,20 @@ Body 佔位符：`__TAG__`、`__MAJOR__`。
 | `working-directory` | `.` | 套件根目錄 |
 | `pnpm-version` | _(空)_ | 給 `pnpm/action-setup` 的版本；空則用 `packageManager`，否則 `10` |
 
-`npm-publish` 另需 `npm-token`、`npm-access`。  
+`npm-publish` 另需 `npm-token`（可選）、`npm-access`。  
 `github-packages` 使用 `token`（預設 `github.token`）。
+
+**npm Trusted Publishing（不需要 npm token）：** 留空 `npm-token`，並在該 job 加上 `id-token: write`。Action 會透過 GitHub OIDC 發布。
+
+```yaml
+permissions:
+  contents: read
+  id-token: write
+steps:
+  - uses: dytsou/release/npm-publish@v1
+    with:
+      dist-tag: auto
+```
 
 `bump-patch-version` 輸入：`package-json-path`、`base-branch`、`labels`、`token`。
 
@@ -246,7 +258,8 @@ node --test lib/*.test.mjs
 | 你看到的現象 | 可能原因 |
 | ------------ | -------- |
 | Version skipped | 該 registry 已有此版本（`skip-if-exists`） |
-| `npm-token is required` / `token is required` | 對應 Action 缺少 secret |
+| `token is required` | GitHub Packages 缺少 token |
+| `npm-token is empty and no GitHub OIDC token` | 在 job 加上 `permissions: id-token: write`，或設定 `npm-token` |
 | Publish failed after install | registry 認證／package `name` scope 不符 |
 | `Version mismatch!` | tag 與 `package.json` 不一致（`from-package-json`） |
 | `Invalid npm package name` / `Invalid semver` | `package.json` 的 `name`/`version` 未通過 allowlist |

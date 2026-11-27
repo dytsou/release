@@ -35,9 +35,19 @@ SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 DIST_TAG="$(node "${SCRIPT_DIR}/resolve-dist-tag.mjs" "${PACKAGE_VERSION}" "${DIST_TAG_INPUT}")"
 echo "Publishing ${PACKAGE_VERSION} to ${REGISTRY_KIND:-registry} under dist-tag '${DIST_TAG}'."
 
+# npmjs may publish without a token: trusted publishing exchanges the GitHub OIDC
+# token (requires `permissions: id-token: write`). GitHub Packages always needs one.
+USE_TRUSTED_PUBLISHING=false
 if [[ -z "${NODE_AUTH_TOKEN}" ]]; then
-  echo "::error::token is required for ${REGISTRY_KIND}" >&2
-  exit 1
+  if [[ "${REGISTRY_KIND}" != "npmjs" ]]; then
+    echo "::error::token is required for ${REGISTRY_KIND}" >&2
+    exit 1
+  fi
+  if [[ -z "${ACTIONS_ID_TOKEN_REQUEST_URL:-}" ]]; then
+    echo "::error::npm-token is empty and no GitHub OIDC token is available; add 'permissions: id-token: write' for trusted publishing" >&2
+    exit 1
+  fi
+  USE_TRUSTED_PUBLISHING=true
 fi
 
 case "${REGISTRY_KIND}" in
@@ -84,7 +94,10 @@ if [[ -n "${PACKAGE_SCOPE}" ]]; then
   npm config set "${PACKAGE_SCOPE}:registry" "${REGISTRY_URL}"
 fi
 npm config set registry "${REGISTRY_URL}"
-npm config set "//${REGISTRY_URL#https://}/:_authToken" "${NODE_AUTH_TOKEN}"
+# With trusted publishing, no token is written: an empty _authToken would block the OIDC exchange.
+if [[ "${USE_TRUSTED_PUBLISHING}" == "false" ]]; then
+  npm config set "//${REGISTRY_URL#https://}/:_authToken" "${NODE_AUTH_TOKEN}"
+fi
 
 set +e
 if [[ "${REGISTRY_KIND}" == "npmjs" ]]; then

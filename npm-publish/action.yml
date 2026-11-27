@@ -6,8 +6,9 @@ branding:
 
 inputs:
   npm-token:
-    description: npmjs auth token
-    required: true
+    description: "npmjs auth token. Leave empty to publish with trusted publishing; the calling job then needs permissions: id-token: write"
+    required: false
+    default: ""
   package-json-path:
     description: Path to package.json relative to the workspace
     required: false
@@ -69,7 +70,6 @@ runs:
       uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v6
       with:
         node-version: ${{ inputs.node-version }}
-        registry-url: https://registry.npmjs.org
 
     - name: Resolve pnpm version
       id: pnpm-version
