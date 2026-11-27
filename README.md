@@ -11,6 +11,10 @@ Version bump (opens a PR):
 
 - `dytsou/release/bump-patch-version` → bump `package.json` patch + PR
 
+Release gating:
+
+- `dytsou/release/version-check` → `release` output: `true` for manual runs or when `package.json`'s version differs from the push's base commit (needs `fetch-depth: 0`)
+
 [![GitHub release](https://img.shields.io/github/v/release/dytsou/release)](https://github.com/dytsou/release/releases)
 [![CI](https://github.com/dytsou/release/actions/workflows/ci.yml/badge.svg)](https://github.com/dytsou/release/actions/workflows/ci.yml)
 [![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)

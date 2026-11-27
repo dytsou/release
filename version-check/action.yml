@@ -1,0 +1,32 @@
+name: Version Check
+description: Report whether this run changes the package version. Manual runs always release; a push releases only when package.json's version differs from the base commit. Needs fetch-depth 0.
+branding:
+  icon: tag
+  color: blue
+
+inputs:
+  package-json-path:
+    description: Path to package.json relative to the workspace
+    required: false
+    default: package.json
+  before:
+    description: Base commit of the push (pass github.event.before)
+    required: false
+    default: ""
+
+outputs:
+  release:
+    description: "true when the package version changed or the run is manual"
+    value: ${{ steps.check.outputs.release }}
+
+runs:
+  using: composite
+  steps:
+    - name: Detect package version change
+      id: check
+      shell: bash
+      env:
+        GITHUB_EVENT_NAME: ${{ github.event_name }}
+        INPUT_BEFORE: ${{ inputs.before }}
+        INPUT_PACKAGE_JSON_PATH: ${{ inputs.package-json-path }}
+      run: node "${{ github.action_path }}/../lib/detect-version-change.mjs"
