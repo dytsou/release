@@ -182,7 +182,7 @@ Pin `@v1` for floating updates, or pin `@v1.2.0` / a commit SHA in production.
 2. If `skip-if-exists` (default `true`) and that version is already on the registry → skip.
 3. Optionally `pnpm install --frozen-lockfile --ignore-scripts`.
 4. Optionally `pnpm pack` as a dry check.
-5. `pnpm publish` to that registry only.
+5. `pnpm publish --tag <dist-tag>` to that registry only (see `dist-tag`).
 
 ### `github` (default)
 
@@ -206,6 +206,7 @@ See each `action.yml`. Registry Actions share:
 | Name | Default | Description |
 | :--- | :--- | :--- |
 | `skip-if-exists` | `true` | Skip when `name@version` already exists |
+| `dist-tag` | `auto` | npm dist-tag. `auto`: stable → `latest`; prerelease identifier (`1.0.0-beta.1` → `beta`, `2.0.0-rc.1` → `rc`) → that tag; other prereleases → `next`. Any other value is used as given |
 | `install-deps` | `true` | Run `pnpm install` |
 | `verify-pack` | `true` | Run `pnpm pack` before publish |
 | `package-json-path` | `package.json` | Manifest path |

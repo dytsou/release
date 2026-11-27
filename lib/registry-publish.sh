@@ -11,6 +11,7 @@ NPM_ACCESS="${INPUT_NPM_ACCESS:-public}"
 SKIP_IF_EXISTS="${INPUT_SKIP_IF_EXISTS:-true}"
 INSTALL_DEPS="${INPUT_INSTALL_DEPS:-true}"
 VERIFY_PACK="${INPUT_VERIFY_PACK:-true}"
+DIST_TAG_INPUT="${INPUT_DIST_TAG:-auto}"
 
 # Trust-boundary allowlists (defense in depth; Node meta step validates first).
 if [[ ! "${PACKAGE_NAME}" =~ ^(@[A-Za-z0-9][A-Za-z0-9._-]*/)?[A-Za-z0-9][A-Za-z0-9._-]*$ ]]; then
@@ -29,6 +30,10 @@ if [[ "${NPM_ACCESS}" != "public" && "${NPM_ACCESS}" != "restricted" ]]; then
   echo "::error::npm-access must be public or restricted" >&2
   exit 1
 fi
+
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+DIST_TAG="$(node "${SCRIPT_DIR}/resolve-dist-tag.mjs" "${PACKAGE_VERSION}" "${DIST_TAG_INPUT}")"
+echo "Publishing ${PACKAGE_VERSION} to ${REGISTRY_KIND:-registry} under dist-tag '${DIST_TAG}'."
 
 if [[ -z "${NODE_AUTH_TOKEN}" ]]; then
   echo "::error::token is required for ${REGISTRY_KIND}" >&2
@@ -83,16 +88,16 @@ npm config set "//${REGISTRY_URL#https://}/:_authToken" "${NODE_AUTH_TOKEN}"
 
 set +e
 if [[ "${REGISTRY_KIND}" == "npmjs" ]]; then
-  pnpm publish --access "${NPM_ACCESS}" --no-git-checks --registry "${REGISTRY_URL}"
+  pnpm publish --access "${NPM_ACCESS}" --no-git-checks --tag "${DIST_TAG}" --registry "${REGISTRY_URL}"
 else
-  pnpm publish --no-git-checks --registry "${REGISTRY_URL}"
+  pnpm publish --no-git-checks --tag "${DIST_TAG}" --registry "${REGISTRY_URL}"
 fi
 status=$?
 set -e
 
 if [[ "${status}" -eq 0 ]]; then
   echo "published=true" >>"${GITHUB_OUTPUT}"
-  echo "Published ${PACKAGE_NAME}@${PACKAGE_VERSION} to ${REGISTRY_KIND}"
+  echo "Published ${PACKAGE_NAME}@${PACKAGE_VERSION} to ${REGISTRY_KIND} (dist-tag ${DIST_TAG})"
   exit 0
 fi
 

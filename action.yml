@@ -57,6 +57,10 @@ inputs:
     description: pnpm publish --access for npmjs
     required: false
     default: public
+  dist-tag:
+    description: "Dist-tag for registry publish: auto (stable → latest, prerelease identifier such as beta or rc → that tag, other prereleases → next) or any explicit tag"
+    required: false
+    default: auto
   skip-if-exists:
     description: Skip registry publish when the version already exists
     required: false
@@ -212,6 +216,7 @@ runs:
         INPUT_PACKAGE_VERSION: ${{ steps.pkg.outputs.version }}
         INPUT_PACKAGE_SCOPE: ${{ steps.pkg.outputs.scope }}
         INPUT_NPM_ACCESS: ${{ inputs.npm-access }}
+        INPUT_DIST_TAG: ${{ inputs.dist-tag }}
         INPUT_SKIP_IF_EXISTS: ${{ inputs.skip-if-exists }}
         INPUT_INSTALL_DEPS: "true"
         INPUT_VERIFY_PACK: "true"
@@ -229,6 +234,7 @@ runs:
         INPUT_PACKAGE_VERSION: ${{ steps.pkg.outputs.version }}
         INPUT_PACKAGE_SCOPE: ${{ steps.pkg.outputs.scope }}
         INPUT_SKIP_IF_EXISTS: ${{ inputs.skip-if-exists }}
+        INPUT_DIST_TAG: ${{ inputs.dist-tag }}
         # Avoid a second install when npmjs already installed deps in this job.
         INPUT_INSTALL_DEPS: ${{ inputs.npm-publish == 'true' && 'false' || 'true' }}
         INPUT_VERIFY_PACK: ${{ inputs.npm-publish == 'true' && 'false' || 'true' }}

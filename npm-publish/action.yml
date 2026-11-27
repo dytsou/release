@@ -20,6 +20,10 @@ inputs:
     description: Skip publish when this version already exists on npmjs
     required: false
     default: "true"
+  dist-tag:
+    description: "Dist-tag for the publish: auto (stable → latest, prerelease identifier such as beta or rc → that tag, other prereleases → next) or any explicit tag"
+    required: false
+    default: auto
   install-deps:
     description: Run pnpm install before publish
     required: false
@@ -103,5 +107,6 @@ runs:
         INPUT_SKIP_IF_EXISTS: ${{ inputs.skip-if-exists }}
         INPUT_INSTALL_DEPS: ${{ inputs.install-deps }}
         INPUT_VERIFY_PACK: ${{ inputs.verify-pack }}
+        INPUT_DIST_TAG: ${{ inputs.dist-tag }}
         NODE_AUTH_TOKEN: ${{ inputs.npm-token }}
       run: bash "${{ github.action_path }}/../lib/registry-publish.sh"

@@ -182,7 +182,7 @@ Major tag（`@v1`）會跟著同 major 浮動；固定版本請用 `@v1.2.0` 或
 2. 若 `skip-if-exists`（預設 `true`）且該版本已在 registry → 跳過。
 3. 可選執行 `pnpm install --frozen-lockfile --ignore-scripts`。
 4. 可選執行 `pnpm pack` 當 dry check。
-5. 對**該 registry** 執行 `pnpm publish`。
+5. 對**該 registry** 執行 `pnpm publish --tag <dist-tag>`（見 `dist-tag`）。
 
 ### `github`（預設）
 
@@ -206,6 +206,7 @@ Body 佔位符：`__TAG__`、`__MAJOR__`。
 | 名稱 | 預設 | 說明 |
 | :--- | :--- | :--- |
 | `skip-if-exists` | `true` | `name@version` 已存在則跳過 |
+| `dist-tag` | `auto` | npm dist-tag。`auto`：穩定版 → `latest`；預發布識別字（`1.0.0-beta.1` → `beta`、`2.0.0-rc.1` → `rc`）→ 該 tag；其他預發布 → `next`。其他值照原樣使用 |
 | `install-deps` | `true` | 執行 `pnpm install` |
 | `verify-pack` | `true` | publish 前執行 `pnpm pack` |
 | `package-json-path` | `package.json` | manifest 路徑 |
